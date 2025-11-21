@@ -21,14 +21,6 @@ print( get_and_parse_data() )
 
 
 
-
-
-# there will be at least a short delay in the container and PostgreSQL becoming ready
-time.sleep(MAX_STARTUP_SECONDS) # replace this with a more efficient solution later
-
-
-
-
 connection = create_connection(
 	DEFAULT_DATABASE,
 	DEFAULT_USER,

@@ -22,6 +22,9 @@ services:
       - "5678:5678"
     environment:  # sets environment variables
       - DEBUG=True
+    depends_on:   # won't start until db healthcheck returns true
+      db:
+        condition: service_healthy
     
 #  web:
 #    build: nginx
@@ -43,6 +46,11 @@ services:
       - backend-network
     ports:
       - "5432:5432"
+    healthcheck:  # backend won't start until healthcheck succeeds
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
 
 #  adminer:   # this was part of the example for postgres
 #    image: adminer
