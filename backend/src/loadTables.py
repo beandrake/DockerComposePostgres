@@ -3,8 +3,19 @@
 
 def load_tables(cursor, timestamp, fullRecords):
 	_load_temp_table(cursor, timestamp, fullRecords)
+	_load_weapon_types_table(cursor)
+	_load_weapons_table(cursor)
 	
+
+def queryDisplay(cursor, query):
+	cursor.execute(query)
 	
+	result = cursor.fetchone()
+	while result is not None:
+		print(result)
+		result = cursor.fetchone()
+
+
 def _load_temp_table(cursor, timestamp, fullRecords):
 	# Make temp table for all records from datafile
 	query="""
@@ -39,22 +50,12 @@ def _load_temp_table(cursor, timestamp, fullRecords):
 		record["timestamp"] = timestamp
 		cursor.execute(query, record)
 
-
 	# Optional verification output
-	query="""
-		SELECT * FROM full_records;
-	"""
-	cursor.execute(query)
-
-	result = cursor.fetchone()
-	while result is not None:
-		print(result)
-		result = cursor.fetchone()
+	query="SELECT * FROM full_records;"
+	queryDisplay(cursor, query)
 
 
-
-
-def _load_weapon_type_table(cursor):
+def _load_weapon_types_table(cursor):
 	# Make weapon_types table
 	query="""
 		CREATE TABLE weapon_types (
@@ -64,28 +65,42 @@ def _load_weapon_type_table(cursor):
 	"""
 	cursor.execute(query)
 
-
 	# populate from raw data
 	query="""
 		INSERT INTO weapon_types (description)
-		SELECT DISTINCT description
+		SELECT DISTINCT split_part(itemType, ' ', 1)
 		FROM full_records;
 	"""
 	cursor.execute(query)
 
-
 	# Optional verification output
+	query="SELECT * FROM weapon_types;"
+	queryDisplay(cursor, query)
+
+
+def _load_weapons_table(cursor):
+	# Make weapon_types table
 	query="""
-		SELECT * FROM full_records;
+		CREATE TABLE weapons (
+			id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+			name VARCHAR(255) UNIQUE,
+			type_id INT REFERENCES weapon_types (id)
+		);
 	"""
 	cursor.execute(query)
 
-	result = cursor.fetchone()
-	while result is not None:
-		print(result)
-		result = cursor.fetchone()
+	# populate from raw data
+	query="""
+		INSERT INTO weapons (name, type_id)
+		SELECT DISTINCT compatibility, weapon_types.id
+		FROM full_records
+		LEFT JOIN weapon_types ON
+		weapon_types.description = split_part(full_records.itemType, ' ', 1);
+	"""
+	cursor.execute(query)
 
-
-
+	# Optional verification output
+	query="SELECT * FROM weapons;"
+	queryDisplay(cursor, query)
 
 
