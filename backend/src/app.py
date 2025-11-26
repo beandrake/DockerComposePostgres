@@ -1,6 +1,6 @@
-from getFile import get_and_parse_data
 from db import create_connection
-import time
+from getFile import get_and_parse_data
+from loadTables import load_tables
 
 # PostgreSQL
 DEFAULT_DATABASE = 'postgres'
@@ -12,15 +12,8 @@ DB_PORT_OUTSIDE = '5432'
 DB_PORT_INSIDE = '5432'		# ports set in docker-compose.yml
 DB_HOST = 'db'				# the name of the service from docker-compose.yml
 
-MAX_STARTUP_SECONDS = 5
 
-
-
-print( get_and_parse_data() )
-
-
-
-
+# create connection to database
 connection = create_connection(
 	DEFAULT_DATABASE,
 	DEFAULT_USER,
@@ -29,27 +22,15 @@ connection = create_connection(
 	DB_HOST
 )
 
+# get data from web endpoint
+rivenData = get_and_parse_data()
 
-
+# connect to Postgres container
 cursor = connection.cursor()
 
-query="""
-	CREATE TABLE mascots (
-		id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-		name VARCHAR(255)
-
-	);
-"""
-
-cursor.execute(query)
+# load tables with data from the web endpoint
+load_tables(cursor, rivenData["timestamp"], rivenData["records"])
 
 
 
-query="""
-	SELECT CURRENT_TIMESTAMP;
-"""
-cursor.execute(query)
-result = cursor.fetchone()
-myTime = result[0].strftime("%I:%M:%S")
-print(myTime)
 
