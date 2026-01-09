@@ -14,4 +14,5 @@ RUN pip install -r requirements.txt
 COPY src/ .
 
 # Command to run on the container when it starts
-CMD [ "python", "./app.py" ]
+#CMD [ "python", "./app.py" ]
+CMD [ "python", "-m", "flask", "run" ]

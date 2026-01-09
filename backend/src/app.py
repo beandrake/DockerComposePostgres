@@ -1,3 +1,6 @@
+import time
+from flask import Flask
+
 from db import create_connection
 from getFile import get_and_parse_data
 from loadTables import load_tables
@@ -13,24 +16,38 @@ DB_PORT_INSIDE = '5432'		# ports set in docker-compose.yml
 DB_HOST = 'db'				# the name of the service from docker-compose.yml
 
 
-# create connection to database
-connection = create_connection(
-	DEFAULT_DATABASE,
-	DEFAULT_USER,
-	SUPERUSER_PASSWORD,
-	DB_PORT_OUTSIDE,
-	DB_HOST
-)
+#@app.route('/api/start')
+def initialize_records():
+	# create connection to database
+	connection = create_connection(
+		DEFAULT_DATABASE,
+		DEFAULT_USER,
+		SUPERUSER_PASSWORD,
+		DB_PORT_OUTSIDE,
+		DB_HOST
+	)
 
-# get data from web endpoint
-rivenData = get_and_parse_data()
+	# get data from web endpoint
+	rivenData = get_and_parse_data()
 
-# connect to Postgres container
-cursor = connection.cursor()
+	# connect to Postgres container
+	cursor = connection.cursor()
 
-# load tables with data from the web endpoint
-load_tables(cursor, rivenData["timestamp"], rivenData["records"])
+	# load tables with data from the web endpoint
+	load_tables(cursor, rivenData["timestamp"], rivenData["records"])
 
 
+print("Initializing records...")
+initialize_records()
+print("Records initialized.")
+
+
+app = Flask(__name__)
+
+
+
+@app.route('/api/time')
+def get_current_time():
+    return {'time': time.time()}
 
 
